@@ -4,12 +4,18 @@ from typing import List
 from kafka import KafkaProducer
 import uvicorn
 import json
+import os
 
 app = FastAPI()
 
-# Connexion Kafka ultra-simplifiée
-producer = KafkaProducer(bootstrap_servers='localhost:9092')
+# Connexion directe à Kafka (sans attente de sécurité)
+KAFKA_SERVER = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+producer = KafkaProducer(
+    bootstrap_servers=KAFKA_SERVER,
+    value_serializer=lambda x: json.dumps(x).encode('utf-8')
+)
 
+# --- Modèles de données ---
 class Article(BaseModel):
     produit: str
     prix: float
@@ -22,21 +28,13 @@ class Ticket(BaseModel):
     total: float
     articles: List[Article]
 
+# --- Route POST ---
 @app.post("/envoyer_ticket")
 def recevoir_ticket(ticket: Ticket):
-    message_en_bytes = json.dumps(ticket.model_dump()).encode('utf-8')
-    producer.send('tickets_caisse', value=message_en_bytes)
+    # Envoi direct dans le topic 'tickets_caisse'
+    producer.send('tickets_caisse', value=ticket.model_dump())
     producer.flush()
-    return {"message": "Ticket envoyé", "ticket": ticket.model_dump()}
-
-#========================================
-def start_server():
-    print('Starting Server...')       
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-    )
+    return {"message": "Ticket envoyé", "id": ticket.id_ticket}
 
 if __name__ == "__main__":
-    start_server()
+    uvicorn.run(app, host="0.0.0.0", port=8000)
