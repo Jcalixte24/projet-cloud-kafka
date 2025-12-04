@@ -14,7 +14,7 @@ def create_table_ticket():
                                 );"""
             cursor.execute(commande)
             conn.commit()
-
+            print("succès")
     except Exception as e:
         print(f"l'erreur est {e}")
 
@@ -33,10 +33,11 @@ def create_table_article():
                             );"""
             cursor.execute(commande)
             conn.commit()
+            print("succès")
     except Exception as e :
         print(f"l'erreur est {e}")
 
-def insert_titcket(id_ticket:int, date_achat:str, magasin:str, total:float|int):
+def insert_ticket(id_ticket:int, date_achat:str, magasin:str, total:float|int):
     try:
         with connexion() as conn : 
             cursor = conn.cursor()
@@ -46,7 +47,7 @@ def insert_titcket(id_ticket:int, date_achat:str, magasin:str, total:float|int):
 
 
     except Exception as e : 
-        print(f"l'erreure est {e}")
+        print(f"l'erreur est {e}")
 
 def insert_article(id_article: int, id_ticket:int , Article:str, quantite:float, prix_unitaire:float):
     try:
@@ -61,5 +62,5 @@ def insert_article(id_article: int, id_ticket:int , Article:str, quantite:float,
 
 create_table_article()
 create_table_ticket()
-insert_titcket(1, "2002", "moi", 100.0)
+insert_ticket(1, "2002", "moi", 100.0)
 insert_article(1, 1, "rien", 20.0, 20.)

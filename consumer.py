@@ -1,29 +1,34 @@
 from kafka import KafkaConsumer
 import json
 import os
-from database import create_tables, insert_ticket, insert_article
+import time
+# IMPORT ADAPTÉ : On importe les deux fonctions de création
+from database import create_table_ticket, create_table_article, insert_ticket, insert_article
 
-# 1. Initialisation directe
-create_tables()
+# APPEL DES DEUX FONCTIONS
+create_table_ticket()
+create_table_article()
+
+# Connexion Kafka
 KAFKA_SERVER = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
-
-# 2. Connexion directe (Si Kafka n'est pas là, ça plante ici)
 print(f"Connexion à Kafka sur {KAFKA_SERVER}...")
+
+# Connexion directe sans gestion d'erreur complexe (ça plantera si Kafka n'est pas prêt)
 consumer = KafkaConsumer(
     'tickets_caisse',
     bootstrap_servers=[KAFKA_SERVER],
     auto_offset_reset='earliest',
-    group_id='groupe_worker_sqlite',
+    group_id='groupe_worker_sqlite_v2',
     value_deserializer=lambda x: json.loads(x.decode('utf-8'))
 )
-print("Connecté !")
+print("✅ Connecté !")
 
-# 3. Boucle de travail brute
+# Boucle de travail
 for message in consumer:
     ticket = message.value
     print(f"Traitement du ticket : {ticket.get('id_ticket')}")
 
-    # Enregistrement direct (Si erreur SQL, ça plante ici)
+    # 1. Insertion Ticket
     insert_ticket(
         ticket['id_ticket'], 
         ticket['date'], 
@@ -31,6 +36,7 @@ for message in consumer:
         ticket['total']
     )
 
+    # 2. Insertion Articles
     if 'articles' in ticket:
         for art in ticket['articles']:
             insert_article(
@@ -40,4 +46,4 @@ for message in consumer:
                 art['prix']
             )
             
-    print("OK.")
+    print("Sauvegardé.")

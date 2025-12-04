@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # 1. KAFKA (Le Centre de Tri)
   kafka:
     image: apache/kafka:4.1.1
     container_name: kafka
@@ -21,11 +20,10 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
-  # 2. API ÉCRITURE (Post) -> Port 8000
+  # API Écriture (Port 8000) - producer.py
   api_write:
     build: .
     container_name: api_writer
-    #Docker lance producer.py
     command: ["uvicorn", "producer:app", "--host", "0.0.0.0", "--port", "8000"]
     depends_on:
       - kafka
@@ -36,28 +34,24 @@ services:
     volumes:
       - ./:/app
 
-  # 3. API LECTURE (Lecteur) -> Port 8001
+  # API Lecture (Port 8001) - reader.py (C'EST CE BLOC QUI MANQUAIT)
   api_read:
     build: .
     container_name: api_reader
-    # On force Docker à lancer reader.py
     command: ["uvicorn", "reader:app", "--host", "0.0.0.0", "--port", "8001"]
     ports:
       - "8001:8001"
     volumes:
-      # CRITIQUE : Il doit avoir accès au fichier DB créé par le consumer
       - ./:/app
 
-  # 4. CONSUMER (L'Ouvrier) -> Arrière-plan
+  # Worker Consumer - consumer.py
   consumer:
     build: .
     container_name: consumer_worker
-    # On force Docker à lancer consumer.py
-    command: ["python", "consumer.py"]
+    command: ["python", "consumer.py"] 
     depends_on:
       - kafka
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
-      # CRITIQUE : C'est lui qui écrit dans le fichier DB
       - ./:/app
