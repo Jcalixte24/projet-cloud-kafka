@@ -31,7 +31,8 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
-      - ./Projet:/app
+    
+      - ./:/app
 
   consumer:
     build: 
@@ -44,4 +45,5 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
-      - ./Projet:/app
+      # MODIFICATION : Idem, dossier courant
+      - ./:/app
