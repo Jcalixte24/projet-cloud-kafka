@@ -1,36 +1,29 @@
 from kafka import KafkaConsumer
 import json
-import time
 import os
 from database import create_tables, insert_ticket, insert_article
 
-
+# 1. Initialisation directe
 create_tables()
+KAFKA_SERVER = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
 
-# 2. On se connecte à 
-consumer = None
-while not consumer:
-    try:
-        consumer = KafkaConsumer(
-            'tickets_caisse',
-            bootstrap_servers=[os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')],
-            auto_offset_reset='earliest',       
-            group_id='groupe_sqlite',           
-            value_deserializer=lambda x: json.loads(x.decode('utf-8')) # Décode le JSON
-        )
-        print("Connecté à Kafka !")
-    except:
-        print("En attente de Kafka...")
-        time.sleep(2)
+# 2. Connexion directe (Si Kafka n'est pas là, ça plante ici)
+print(f"Connexion à Kafka sur {KAFKA_SERVER}...")
+consumer = KafkaConsumer(
+    'tickets_caisse',
+    bootstrap_servers=[KAFKA_SERVER],
+    auto_offset_reset='earliest',
+    group_id='groupe_worker_sqlite',
+    value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+)
+print("Connecté !")
 
-# 3. La boucle de travail infinie
-
-
+# 3. Boucle de travail brute
 for message in consumer:
     ticket = message.value
-    print(f"📥 Nouveau ticket reçu : {ticket.get('id_ticket')}")
+    print(f"Traitement du ticket : {ticket.get('id_ticket')}")
 
-    # A. On sauvegarde l'entête (Date, Magasin, Total)
+    # Enregistrement direct (Si erreur SQL, ça plante ici)
     insert_ticket(
         ticket['id_ticket'], 
         ticket['date'], 
@@ -38,7 +31,6 @@ for message in consumer:
         ticket['total']
     )
 
-    # B. On sauvegarde les articles (Pommes, Eau...)
     if 'articles' in ticket:
         for art in ticket['articles']:
             insert_article(
@@ -47,5 +39,5 @@ for message in consumer:
                 art['quantite'],
                 art['prix']
             )
-    
-    print("Succès")
+            
+    print("OK.")

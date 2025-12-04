@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
+  # 1. KAFKA (Le Centre de Tri)
   kafka:
     image: apache/kafka:4.1.1
     container_name: kafka
-    hostname: kafka
     ports:
       - "9092:9092"
     environment:
@@ -21,9 +21,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
-  api:
+  # 2. API ÉCRITURE (Post) -> Port 8000
+  api_write:
     build: .
-    container_name: api_producer
+    container_name: api_writer
+    #Docker lance producer.py
+    command: ["uvicorn", "producer:app", "--host", "0.0.0.0", "--port", "8000"]
     depends_on:
       - kafka
     ports:
@@ -31,19 +34,30 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
-    
       - ./:/app
 
+  # 3. API LECTURE (Lecteur) -> Port 8001
+  api_read:
+    build: .
+    container_name: api_reader
+    # On force Docker à lancer reader.py
+    command: ["uvicorn", "reader:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "8001:8001"
+    volumes:
+      # CRITIQUE : Il doit avoir accès au fichier DB créé par le consumer
+      - ./:/app
+
+  # 4. CONSUMER (L'Ouvrier) -> Arrière-plan
   consumer:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    command: ["python", "consumer.py"] 
-    container_name: sqlite_consumer
+    build: .
+    container_name: consumer_worker
+    # On force Docker à lancer consumer.py
+    command: ["python", "consumer.py"]
     depends_on:
       - kafka
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
-      # MODIFICATION : Idem, dossier courant
+      # CRITIQUE : C'est lui qui écrit dans le fichier DB
       - ./:/app
