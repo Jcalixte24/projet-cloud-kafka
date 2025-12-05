@@ -7,7 +7,7 @@ def create_table_ticket():
         with connexion() as conn:
             cursor = conn.cursor()
             commande =  """ CREATE TABLE IF NOT EXISTS tickets(
-                                id_ticket INTEGER PRIMARY KEY,
+                                id_ticket TEXT PRIMARY KEY,
                                 date_achat TEXT,
                                 magasin VARCHAR(60),
                                 total REAL
@@ -25,7 +25,7 @@ def create_table_article():
             cursor = conn.cursor()
             commande = """CREATE TABLE IF NOT EXISTS article(
                             id_article INTEGER PRIMARY KEY, 
-                            id_ticket INTEGER,                          
+                            id_ticket TEXT,                          
                             Article VARCHAR(60),
                             quantite REAL,
                             prix_unitaire REAL,
@@ -49,11 +49,11 @@ def insert_ticket(id_ticket:int, date_achat:str, magasin:str, total:float):
     except Exception as e : 
         print(f"l'erreur est {e}")
 
-def insert_article(id_article: int, id_ticket:int , Article:str, quantite:float, prix_unitaire:float):
+def insert_article(id_ticket:int , Article:str, quantite:float, prix_unitaire:float):
     try:
         with connexion() as conn :
             cursor = conn.cursor()
-            commande = """ INSERT INTO Article (id_article, id_ticket, Article, quantite, prix_unitaire) VALUES (?,?,?,?,?)"""
+            commande = """ INSERT INTO Article (id_ticket, Article, quantite, prix_unitaire) VALUES (?,?,?,?)"""
             cursor.execute(commande,(id_ticket, Article, quantite, prix_unitaire))
             conn.commit()
     except Exception as e:

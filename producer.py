@@ -14,17 +14,16 @@ KAFKA_SERVER = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
 producer = None
 
 # Boucle de connexion robuste
-print(f"⏳ Tentative de connexion à Kafka sur {KAFKA_SERVER}...")
+print(f" Tentative de connexion à Kafka sur {KAFKA_SERVER}...")
 for i in range(30): # On essaie pendant 30 fois (environ 1 min)
     try:
         producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVER,
             value_serializer=lambda x: json.dumps(x).encode('utf-8')
         )
-        print("✅ Producer connecté à Kafka !")
+        print("Producer connecté à Kafka !")
         break
     except Exception as e:
-        print(f"⚠️ Essai {i+1}/30 échoué. Kafka n'est pas prêt. Nouvelle tentative dans 2s...")
         time.sleep(2)
 
 if producer is None:
