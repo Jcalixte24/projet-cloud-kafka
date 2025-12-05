@@ -37,11 +37,11 @@ def create_table_article():
     except Exception as e :
         print(f"l'erreur est {e}")
 
-def insert_ticket(id_ticket:int, date_achat:str, magasin:str, total:float|int):
+def insert_ticket(id_ticket:int, date_achat:str, magasin:str, total:float):
     try:
         with connexion() as conn : 
             cursor = conn.cursor()
-            commande = """ INSERT INTO Tickets (id_ticket, date_achat, magasin,total) VALUES (?,?,?,?)"""
+            commande = """ INSERT OR IGNORE INTO Tickets (id_ticket, date_achat, magasin,total) VALUES (?,?,?,?)"""
             cursor.execute(commande,(id_ticket, date_achat, magasin , total))
             conn.commit()
 
@@ -54,13 +54,13 @@ def insert_article(id_article: int, id_ticket:int , Article:str, quantite:float,
         with connexion() as conn :
             cursor = conn.cursor()
             commande = """ INSERT INTO Article (id_article, id_ticket, Article, quantite, prix_unitaire) VALUES (?,?,?,?,?)"""
-            cursor.execute(commande,(id_article, id_ticket, Article, quantite, prix_unitaire))
+            cursor.execute(commande,(id_ticket, Article, quantite, prix_unitaire))
             conn.commit()
     except Exception as e:
         print(f"l'erreur est {e}")
 
-
-create_table_article()
-create_table_ticket()
-insert_ticket(1, "2002", "moi", 100.0)
-insert_article(1, 1, "rien", 20.0, 20.)
+if __name__ == "__main__":
+    create_table_ticket()
+    create_table_article()
+#insert_ticket(1, "2002", "moi", 100.0)
+#insert_article(1, 1, "rien", 20.0, 20.)

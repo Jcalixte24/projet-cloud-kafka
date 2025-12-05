@@ -3,7 +3,7 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Installation des dépendances
-RUN pip install fastapi uvicorn kafka-python pydantic
+RUN pip install fastapi uvicorn kafka-python-ng pydantic
 
 # IMPORTANT : On copie TOUS les fichiers du dossier courant (.) vers le conteneur (.)
 COPY . .

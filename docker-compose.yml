@@ -4,6 +4,7 @@ services:
   kafka:
     image: apache/kafka:4.1.1
     container_name: kafka
+    hostname: kafka
     ports:
       - "9092:9092"
     environment:
@@ -20,7 +21,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
-  # API Écriture (Port 8000) - producer.py
+  # API ECRITURE (Port 8000)
   api_write:
     build: .
     container_name: api_writer
@@ -34,7 +35,7 @@ services:
     volumes:
       - ./:/app
 
-  # API Lecture (Port 8001) - reader.py (C'EST CE BLOC QUI MANQUAIT)
+  # API LECTURE (Port 8001) - C'EST NOUVEAU
   api_read:
     build: .
     container_name: api_reader
@@ -42,13 +43,15 @@ services:
     ports:
       - "8001:8001"
     volumes:
+      # Il doit lire la DB
       - ./:/app
 
-  # Worker Consumer - consumer.py
   consumer:
-    build: .
-    container_name: consumer_worker
+    build: 
+      context: .
+      dockerfile: Dockerfile
     command: ["python", "consumer.py"] 
+    container_name: sqlite_consumer
     depends_on:
       - kafka
     environment:

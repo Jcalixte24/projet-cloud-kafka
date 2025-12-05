@@ -5,6 +5,7 @@ import time
 # IMPORT ADAPTÉ : On importe les deux fonctions de création
 from database import create_table_ticket, create_table_article, insert_ticket, insert_article
 
+print("⏳ Initialisation de la base de données...")
 # APPEL DES DEUX FONCTIONS
 create_table_ticket()
 create_table_article()
