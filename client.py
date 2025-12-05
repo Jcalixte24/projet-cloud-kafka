@@ -62,7 +62,7 @@ def envoyer_simulation(nb_tickets=5, intervalle=1):
         ticket = generer_ticket()
         
         try:
-            print(f"🔹 Envoi ticket {i+1}/{nb_tickets} (ID: {ticket['id_ticket']})...")
+            print(f"Envoi ticket {i+1}/{nb_tickets} (ID: {ticket['id_ticket']})...")
             response = requests.post(API_URL, json=ticket)
             
             if response.status_code == 200:
@@ -82,4 +82,4 @@ def envoyer_simulation(nb_tickets=5, intervalle=1):
 
 if __name__ == "__main__":
     # Tu peux changer le nombre de tickets ici
-    envoyer_simulation(nb_tickets=10, intervalle=1)
+    envoyer_simulation(nb_tickets=2, intervalle=1)
